@@ -12,6 +12,7 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 
 """Data Analysis"""
+# Settings
 folders = ['F-COM1','F-COM2','F-COM3'] # List all electrode folders of interest
 experimentlabels = ['MCH', 'HSA']
 save = True

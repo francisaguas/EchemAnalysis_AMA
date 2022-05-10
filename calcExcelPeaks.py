@@ -24,6 +24,7 @@ labels = [0, 1, 1000,100000,10000000] # Interger form of experimentConditions
 save = False # Set to True to save peak heights/areas in a file
 resolution = 10 # Value is the percent of the voltammogram length you would like to skip by --> 100 means no skipping
 
+# Extract files of interest
 ti = time.time()
 xIndex, yIndex = s.parseFreq(frequency) # identify columns associated with frequency
 electrodeFiles = [] # keep track of all electrode files of interest

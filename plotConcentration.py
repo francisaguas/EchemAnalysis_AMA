@@ -13,6 +13,7 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 
 """Data Analysis"""
+# Settings
 folders = ['C-COM1','C-COM2','C-COM3'] # List all electrode folders of interest
 labels = [ 0,0.1,1,10,50,100]
 frequency = '10Hz' # for labeling
@@ -41,6 +42,13 @@ print(averages)
 s.plotPeaks(rawPeaks,labels,folders,save) # Peak Height Concentration Curve
 s.plotAreas(areas,labels,folders,save) # Peak Area Concentration Curve
 s.plotConcentration(averages, labels,folders,frequency,save) # Normalized, Averaged Concentration Curve
+
+# Save to File
+if save: # save to Excel files
+    filename1 = 'sampleNormalizedData.csv' # choose file name
+    normSignal.to_csv(os.path.join(os.getcwd(), filename1),index=None,mode='a')
+    filename2 = 'sampleAverages.csv'
+    averages.to_csv(os.path.join(os.getcwd(), filename2), index=None, mode='a')
 
 t1 = time.time()  # end time of execution
 print('-'*80)

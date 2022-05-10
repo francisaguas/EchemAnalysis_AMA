@@ -31,7 +31,7 @@ for electrode in folders: # Gets the folder paths of all electrodes of interest
 # frequency = "10Hz" # Indicate which frequency to analyze
 # experimentConditions = ['0 fg/mL S1','0.1 fg/mL S1','1 fg/mL S1','10 fg/mL S1','50 fg/mL S1','100 fg/mL S1'] # String identifiers for selecting files of interest, case-sensitive
 # labels = [ 0,0.1,1,10,50,100] # integer form of experimentConditions variable
-#
+
 # # Choose peaksMatrix function based on input file type (for TXT, include parameter for index splicing e.g. [0,1] --> [xIndex,yIndex])
 # # [rawPeaks,areas] = c.peaksMatrixTXT(dataType, frequency,electrodesFolders,experimentConditions,[0,1],resolution,save) # Calculates the peaks for every electrode
 # [rawPeaks,areas] = c.peaksMatrixDTA(dataType, frequency,electrodesFolders,experimentConditions,resolution,save) # Calculates the peaks for every electrode
