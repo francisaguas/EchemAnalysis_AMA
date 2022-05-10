@@ -556,60 +556,90 @@ def stats(df_peaks):
     return averages
 
 # <---------------- Plotting Functions ------------>
-
-
+"""
+plotPeaks: plots concentration curve of peak heights across concentrations
+"""
 def plotPeaks(rawPeaks, concentrations, electrodeNames,save):
     plt.figure(figsize=(10, 7))
     plt.rcParams['ytick.labelsize'] = 18
     plt.rcParams['xtick.labelsize'] = 18
+    color = 0
+    colorStep = 1 / len(rawPeaks.index)
     i = 0
     while i < len(rawPeaks.index):
         row = rawPeaks.iloc[i, :]
-        plt.scatter(concentrations, row, marker='o', linestyle='-')  # plots graph
-        coeff = np.polyfit(concentrations, row,1)
-        fit = np.poly1d(coeff)
-        print('Equation:',fit)
-        plt.plot(concentrations, fit(concentrations), '--k')
+        plt.plot(concentrations, row, marker='o', markersize='6', linestyle='-', color=plt.cm.plasma(color),
+                 markeredgecolor='k', markeredgewidth=1.0)
         i += 1
-    plt.xlabel('Concentration (mM)', fontsize='20')
-    plt.ylabel('Peak Height (uA)', fontsize='20')  # gives y-label for bar graph
-    # plt.title('SWV %s Peak Height (%s)' % (electrodeNames, frequency), fontsize='28',
-    # plt.title('SWV %s Peak Height' % (electrodeNames), fontsize='28',
-    #           fontweight='bold')  # display title
-    # plt.legend(electrodeNames, fontsize='18')
-    # plt.xscale('symlog', linthresh=1e-1, subs=[2, 3, 4, 5, 6, 7, 8, 9])
+        color += colorStep
+    plt.xlabel('Concentration (fgmL)', fontsize='20')
+    plt.ylabel('Peak Height (nA)', fontsize='20')  # gives y-label for bar graph
+    plt.title('SWV Peak Height (10Hz)', fontsize='22',fontweight='bold')  # display title
+    plt.legend(electrodeNames, fontsize='18')
+    plt.xscale('symlog', linthresh=1e-1, subs=[2, 3, 4, 5, 6, 7, 8, 9])
     # plt.xlim(-0.01, 150)
     if save:
         plt.tight_layout()
-        plt.savefig(f'{electrodeNames}.png')
+        plt.savefig('Sample Peak ConCurve.png')
 
+"""
+plotAreas: plot concentration curve of peak areas across concentrations 
+"""
 def plotAreas(areas, concentrations, electrodeNames,save):
     plt.figure(figsize=(10, 7))
     plt.rcParams['ytick.labelsize'] = 18
     plt.rcParams['xtick.labelsize'] = 18
+    color = 0
+    colorStep = 1 / len(areas.index)
     i = 0
     while i < len(areas.index):
         row = areas.iloc[i, :]
-        plt.scatter(concentrations, row, marker='o', linestyle='-')  # plots graph
-        coeff = np.polyfit(concentrations, row,1)
-        fit = np.poly1d(coeff)
-        plt.plot(concentrations, fit(concentrations), '--k')
+        plt.plot(concentrations, row, marker='o', markersize='6', linestyle='-', color=plt.cm.plasma(color),
+                 markeredgecolor='k', markeredgewidth=1.0)
         i += 1
-    plt.xlabel('Concentration (mM)', fontsize='20')
+        color += colorStep
+    plt.xlabel('Concentration (fgmL)', fontsize='20')
     plt.ylabel('Peak Area', fontsize='20')  # gives y-label for bar graph
-    # plt.title('SWV %s Peak Height' % (electrodeNames), fontsize='28',
-    #           fontweight='bold')  # display title
-    # plt.legend(electrodeNames, fontsize='18')
-    # plt.xscale('symlog', linthresh=1e-1, subs=[2, 3, 4, 5, 6, 7, 8, 9])
+    plt.title('SWV Peak Areas (10Hz)', fontsize='22', fontweight='bold')  # display title
+    plt.legend(electrodeNames, fontsize='18')
+    plt.xscale('symlog', linthresh=1e-1, subs=[2, 3, 4, 5, 6, 7, 8, 9])
+    # plt.xlim(-0.01, 150)
+    if save:
+        plt.tight_layout()
+        plt.savefig('Sample Area ConCurve.png')
+
+
+"""
+plotCustom: customizable concentration curve plotting function analagous to plotPeaks/plotAreas 
+            e.g. plot concentration curve where y values are peak/area
+"""
+def plotCustom(y, concentrations, electrodeNames,save):
+    plt.figure(figsize=(10, 7))
+    plt.rcParams['ytick.labelsize'] = 18
+    plt.rcParams['xtick.labelsize'] = 18
+    color = 0
+    colorStep = 1 / len(y.index)
+    i = 0
+    while i < len(y.index):
+        row = y.iloc[i, :]
+        plt.plot(concentrations, row, marker='o', markersize='6', linestyle='-', color=plt.cm.plasma(color),
+                 markeredgecolor='k', markeredgewidth=1.0)
+        i += 1
+        color += colorStep
+    plt.xlabel('Concentration (mM)', fontsize='20')
+    plt.ylabel('Peak Height/Area', fontsize='20')  # gives y-label for bar graph
+    plt.title('SWV Peak Height/Area' , fontsize='22', fontweight='bold')  # display title
+    plt.legend(electrodeNames, fontsize='18')
+    plt.xscale('symlog', linthresh=1e-1, subs=[2, 3, 4, 5, 6, 7, 8, 9])
     # plt.xlim(-0.01, 150)
     if save:
         plt.tight_layout()
         plt.savefig(f'{electrodeNames}.png')
 
 """
-plotConcentration: plots averaged concentration curve with error bars 
+plotConcentration: plots (normalized) averaged concentration curve with error bars 
 """
-def plotConcentration(averages, concentrations, electrodeNames, frequency):
+def plotConcentration(averages, concentrations, electrodeNames, frequency,save):
     objects = list(averages.columns)  # gets column names
     dfy = list(averages.iloc[0, :])  # access row 1 of the data frame (the peak heights)
     error = list(averages.iloc[1, :])
@@ -625,3 +655,6 @@ def plotConcentration(averages, concentrations, electrodeNames, frequency):
     plt.xscale('symlog', linthresh=1e-1, subs=[2, 3, 4, 5, 6, 7, 8, 9])
     # plt.xlim(-0.01, 150)
     # plt.ylim(-3,40)
+    if save:
+        plt.tight_layout()
+        plt.savefig('Sample Normalized Averaged ConCurve.png')
