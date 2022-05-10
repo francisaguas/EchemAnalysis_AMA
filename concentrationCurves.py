@@ -82,6 +82,33 @@ def frequencies(filesList, electrodesFolder):
         freq_list.append(header['FREQUENCY'])
     return freq_list
 
+# For Excel files: determines which column to extract for a given frequency
+# Customize according to frequencies used
+def parseFreq(frequency):
+    cols = range(0,20)
+    if (frequency == 5):
+        return [cols[0],cols[1]]
+    elif (frequency == 10):
+        return [cols[2], cols[3]]
+    elif (frequency == 25):
+        return [cols[4], cols[5]]
+    elif (frequency == 50):
+        return [cols[6], cols[7]]
+    elif (frequency == 75):
+        return [cols[8], cols[9]]
+    elif (frequency == 100):
+        return [cols[10], cols[11]]
+    elif (frequency == 150):
+        return [cols[12], cols[13]]
+    elif (frequency == 200):
+        return [cols[14], cols[15]]
+    elif (frequency == 250):
+        return [cols[16], cols[17]]
+    elif (frequency == 300):
+        return [cols[18], cols[19]]
+    else:
+        print('Frequency not found')
+
 """
 peaks functions: calculates the peaks of all the  files in the electrode folders using AMA
 inputs: filesList --> list of  files of interest
@@ -313,6 +340,9 @@ def peaksDTA(filesList, electrodeFolder,resolution,save):
     return peakHeights,areas
 
 # for input file type: .TXT
+""" inputs: xIndex --> the column in txt sheet containing x values
+            yIndex --> the column in txt sheet containing y values
+"""
 def peaksTXT(filesList, xIndex,yIndex,electrodeFolder,resolution, save):
     peakHeights = []
     areas = []
@@ -513,6 +543,199 @@ def peaksTXT(filesList, xIndex,yIndex,electrodeFolder,resolution, save):
     # print("number of baselines considered per concentration:", counter * l * len(filesList))
     print(peakHeights)
     return peakHeights,areas
+
+# For input file type: Excel (calculates peak for ONE file)
+""" inputs: xIndex --> the column in Excel sheet containing x values
+            yIndex --> the column in Excel sheet containing y values
+"""
+def peaksExcel(file, xIndex,yIndex,folder,resolution):
+    entryPath = os.path.join(folder, file)
+    data = pd.read_excel(entryPath,engine='openpyxl',sheet_name='Sheet1')
+    data_df = pd.DataFrame(data[1:])
+
+    filename = file[0:len(file)-5]
+    yVals = (data_df.iloc[:,yIndex]).values # units A
+    xVals = (data_df.iloc[:,xIndex]).values # units = V
+
+    # plt.figure()
+    # plt.title('Raw %s Data' %(filename))
+    # plt.xlabel('Vfwd [V]')
+    # plt.ylabel('Idif [A]')
+    # # plt.scatter(xVals,yVals)
+    # plt.plot(xVals, yVals)
+
+    # Remove non significant data points
+    offset = 5
+    newY = np.array(yVals[offset:len(yVals)-offset])
+    newX = np.array(xVals[offset:len(yVals)-offset])
+
+    # Replace Nan with '0'
+    if len(np.argwhere(newX != newX)) > 0:
+        starts_with_nan = np.argwhere(newX != newX)[0][0]
+        newX = newX[:starts_with_nan]
+        newY = newY[:starts_with_nan]
+
+    # plt.figure()
+    # plt.title('% s Data Without First 5 Points' %filename)
+    # plt.xlabel('Vfwd [V]')
+    # plt.ylabel('Idif [A]')
+    # plt.plot(newX,newY)
+    # plt.xlim([xVals[0],xVals[len(xVals)-1]])
+
+    # Add indices to numpy series to allow for indexing later
+    ind = list(range(0, len(newY)))
+    # newY.index = [ind]
+    # newX.index = [ind]
+
+    # Median Filter
+    # newY = scipy.ndimage.filters.median_filter(newY, size=11)
+    # newY = scipy.signal.medfilt(newY,kernel_size=11)
+    # plt.figure()
+    # plt.title('Smoothed %s 1' % filename)
+    # plt.xlabel('Vfwd [V]')
+    # plt.ylabel('Idif [A]')
+    # plt.plot(newX, newY)
+
+    # Smooth out raw data
+    smoothY = scipy.signal.savgol_filter(newY, 17, 3)
+    # plt.figure()
+    # plt.title('Smoothed %s 2' % filename)
+    # plt.xlabel('Vfwd [V]')
+    # plt.ylabel('Idif [A]')
+    # plt.plot(newX, smoothY)
+
+    # # Find local "minimas" for baseline
+    # firstDeriv = np.gradient(smoothY)
+    # firstDeriv = scipy.signal.savgol_filter(firstDeriv, 25, 3)
+    # plt.figure()
+    # plt.title('Derivative of DPV %s Data' % filename)
+    # plt.xlabel('Vfwd [V]')
+    # plt.ylabel('Idif [A]')
+    # plt.plot(newX, firstDeriv)
+
+    # secondDeriv = np.gradient(firstDeriv)
+    # secondDeriv = scipy.signal.savgol_filter(secondDeriv, 25, 3)
+    # plt.figure()
+    # plt.title('Second Derivative of DPV %s Data' %filename)
+    # plt.xlabel('Vfwd [V]')
+    # plt.ylabel('Idif [A]')
+    # plt.plot(newX,secondDeriv)
+
+    numPoints = len(smoothY)
+    skipp_by = (int)(numPoints / resolution)
+    if skipp_by == 0: skipp_by = 1
+    peaksExcel.area_found = defaultdict(float)  # makes a dictionary to keep track of area already calculated to save time
+    maxArea = None  # Maximum area for voltammogram
+
+    # Loop through every X point in voltammogram
+    for x, y in zip(newX[1::skipp_by], smoothY[1::skipp_by]):
+        # Exclude first pair which is the same point repeated
+        array_of_x = np.full(shape=numPoints - 1, fill_value=x)
+        array_of_y = np.full(shape=numPoints - 1, fill_value=y)
+        #  zip1 = an array of a given data point repeated
+        zip1 = zip(array_of_x, array_of_y)  # ex: --> [ (x, y), (x,y), ... ]
+
+        # zip2 = an array of all data point coordinates considered
+        zip2 = zip(newX[1::skipp_by], smoothY[1::skipp_by])  # ex: --> [ (x0, y0), (x1, y1), ..., (xN, yN) ]
+
+        # Potential anchor point combinations for a given point
+        possibleBaselines = zip(zip1, zip2)
+        currentMaxArea = None  # Maximum area for a given point. Assigned to the first area by default within the loop
+        baselineCounter = 0
+
+        # Loop through the possible baselines for a given point
+        for pair in possibleBaselines:
+            baselineCounter += 1
+            # Extract coordinates for each anchor point
+            anchor1, anchor2 = pair
+            x1, y1 = anchor1
+            x2, y2 = anchor2
+
+            # Find indexes of anchor points in voltammogram
+            leftIndex = np.where(newX == x1)[0][0]
+            rightIndex = np.where(newX == x2)[0][0]
+            if leftIndex > rightIndex: continue
+
+            # Generate baseline using anchor1 and anchor 2
+            try:
+                # Calculate slope using high-precision math
+                m = mp.fdiv(mp.fsub(y2, y1, dps=20), mp.fsub(x2, x1, dps=20), dps=20)
+            except ZeroDivisionError:
+                m = 0.0
+            b = mp.fsub(y1, mp.fmul(m, x1, dps=20), dps=20)
+            baseline = m * newX + b
+            peaksExcel.m = m
+
+            # Baseline correction calculation
+            correctedY = smoothY - baseline
+
+            # Check if area has already been calculated for the given anchor points
+            if ((x1, y1), (x2, y2)) in peaksExcel.area_found or ((x2, y2), (x1, y1)) in peaksExcel.area_found:
+                currentArea = peaksExcel.area_found[((x1, y1), (x2, y2))]
+            else:  # Calculate area under voltammogram if not found in dictionary
+                currentArea = np.trapz(correctedY[leftIndex: rightIndex])
+                # Save calculated area in dictionary
+                peaksExcel.area_found[((x1, y1), (x2, y2))] = currentArea
+                peaksExcel.area_found[((x2, y2), (x1, y1))] = currentArea
+
+            # Save the indexes,area,baseline of best baseline FOR A GIVEN POINT (aka. "current best baseline")
+            if currentMaxArea is None or currentArea > currentMaxArea:
+                currentBest_leftIndex = leftIndex
+                currentBest_rightIndex = rightIndex
+                currentMaxArea = currentArea
+                currentBest_Baseline = baseline
+
+        # Continues for the same given point in the voltammogram
+        # Baseline Correction
+        correctedY = smoothY - currentBest_Baseline
+
+        # Check if area has already been calculated for the given anchor points
+        if ((x, y), (currentBest_leftIndex, currentBest_rightIndex)) in peaksExcel.area_found or (
+                (currentBest_leftIndex, currentBest_rightIndex), (x, y)) in peaksExcel.area_found:
+            area = peaksExcel[((x, y), (currentBest_leftIndex, currentBest_rightIndex))]
+        else:  # Calculate area under voltammogram if not found in dictionary
+            area = np.trapz(correctedY[currentBest_leftIndex:currentBest_rightIndex])
+            # Save calculated area in dictionary
+            peaksExcel.area_found[((x, y), (currentBest_leftIndex, currentBest_rightIndex))] = area
+            peaksExcel.area_found[((currentBest_leftIndex, currentBest_rightIndex), (x, y))] = area
+
+        # Save the indexes,area,baseline of best baseline FOR THE WHOLE VOLTAMMOGRAM
+        if maxArea is None or maxArea < area:
+            bestLeftIndex = currentBest_leftIndex
+            bestRightIndex = currentBest_rightIndex
+            bestBaseline = currentBest_Baseline
+            maxArea = area
+            finalCorrectedY = correctedY
+    # Finished looping through voltammogram. Optimal baseline has been found at this point
+
+    # Subtract baseline from voltammogram
+    difference = [ogVals - baseVals for ogVals, baseVals in zip(smoothY, bestBaseline)]
+    subset = difference[bestLeftIndex:bestRightIndex + 1]
+    newPeakHeight = np.amax(subset)
+    # temp = np.argmax(subset)
+    difference = np.array(difference, dtype=float)
+    newPeakHeightInd = np.argwhere(difference == newPeakHeight)[0][0]
+
+    plt.figure(figsize=(10,7))
+    plt.title('%s Data' % filename)
+    plt.xlabel('Vfwd [V]')
+    plt.ylabel('Idif [A]')
+    plt.plot(newX, smoothY)
+    plt.plot(newX, bestBaseline)
+    plt.plot(newX[newPeakHeightInd], smoothY[newPeakHeightInd], '*')
+    plt.annotate(newPeakHeight, (newX[newPeakHeightInd], smoothY[newPeakHeightInd]))
+    plt.tight_layout()
+    # plt.savefig(f'{filename} Data.png')
+    # plt.show()
+
+    if not type(newPeakHeight) is str:
+        nA = round(newPeakHeight * (10 ** 6), 3)
+        peakHeights = nA
+    else:
+        nA = 0
+        peakHeights = nA
+# print("number of baselines considered:", counter * mid * len(filesList))
+    return peakHeights, maxArea
 
 """
 normalize: Calculates the normalized signal change of peaks across columns

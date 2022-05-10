@@ -313,6 +313,9 @@ def peaksDTA(filesList, electrodeFolder, resolution, save):
     return peakHeights
 
 # for input file type: .TXT (calculates peak for ONE file)
+""" inputs: xIndex --> the column in txt sheet containing x values
+            yIndex --> the column in txt sheet containing y values
+"""
 def peaksTXT(file, xIndex,yIndex,folder,resolution,save):
     entryPath = os.path.join(folder, file)
     data = pd.read_excel(entryPath,engine='openpyxl',sheet_name='Sheet1')

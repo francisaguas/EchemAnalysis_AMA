@@ -18,7 +18,7 @@ pd.set_option('display.max_rows', None)
 # Settings
 folders = ['F-COM1','F-COM2','F-COM3'] # List all electrode folders of interest in quotes, separated by commas
 dataType = 'SWV' # String identifier for selecting files of interest, case-sensitive
-save = True # Set to True to save peak heights/areas in a file
+save = False # Set to True to save peak heights/areas in a file
 resolution = 20 # Value is the percent of the voltammogram length you would like to skip by --> 100 means no skipping
 
 # Import directory
