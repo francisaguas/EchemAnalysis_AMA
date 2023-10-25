@@ -4,7 +4,7 @@ This repository contains the scripts for automated baseline analysis and visuali
 
 This open-source program was created to expedite electrochemical data analysis and support the advancement of electrochemical biosensors.
 
-For more detailed instructions for use, refer to: https://docs.google.com/document/d/1B-2fkvCbE3QyiXFA00YbSR5AxEci5_CkFwBRkM6wl3s/edit?usp=sharing
+For more detailed instructions for use, refer to: [https://docs.google.com/document/d/1B-2fkvCbE3QyiXFA00YbSR5AxEci5_CkFwBRkM6wl3s/edit?usp=sharing](https://docs.google.com/document/d/1ef5YVV4YUmt74-vQhjDRct98Eu_QM3D6OYdY8An9ZUw/edit?usp=sharing)
 
 # Script Directory
 
