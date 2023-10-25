@@ -1,5 +1,7 @@
-Software License.
-Commercial reservation.
+Software License
+
+Commercial reservation
+
 This License governs use of the accompanying Software, and your use of the Software constitutes acceptance of this license.
 
 You may use this Software for any non-commercial purpose, subject to the restrictions in this license. Some purposes which can be non-commercial are teaching, academic research, and personal experimentation. 
@@ -24,9 +26,9 @@ Email: aguasr@uci.edu
  
 Standard BSD License
 
-<Owner> = Raphael Francis Aguas
-<Organization> = University of California, Irvine
-<Year> = 2022
+Owner = Raphael Francis Aguas
+Organization = University of California, Irvine
+Year = 2022
 Copyright (c) <2022>, Raphael Francis Aguas
 All rights reserved.
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
