@@ -26,9 +26,9 @@ Email: aguasr@uci.edu
  
 Standard BSD License
 
-Owner = Raphael Francis Aguas
-Organization = University of California, Irvine
-Year = 2022
+<Owner> = Raphael Francis Aguas
+<Organization> = University of California, Irvine
+<Year> = 2022
 Copyright (c) <2022>, Raphael Francis Aguas
 All rights reserved.
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
